@@ -31,9 +31,9 @@ enum AppStatus { RUNNING, TERMINATED };
 constexpr int WINDOW_WIDTH = 640,
 WINDOW_HEIGHT = 480;
 
-constexpr float BG_RED = 0.9765625f,
-BG_GREEN = 0.97265625f,
-BG_BLUE = 0.9609375f,
+constexpr float BG_RED = 0.2f,
+BG_GREEN = 0.3f,
+BG_BLUE = 0.5f,
 BG_OPACITY = 1.0f;
 
 constexpr int VIEWPORT_X = 0,
@@ -81,7 +81,8 @@ glm::vec3 g_broom1_movement = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_fire_position = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_fire_movement = glm::vec3(0.0f, 0.0f, 0.0f);
 
-float g_broom_speed = 2.0f;  // move 2 units per second
+float g_broom_speed = 4.0f;  // move 2 units per second
+float g_broom1_speed = 4.0f;  // move 2 units per second
 
 void initialise();
 void process_input();
@@ -89,9 +90,9 @@ void update();
 void render();
 void shutdown();
 
-constexpr GLint NUMBER_OF_TEXTURES = 1;  // to be generated, that is
-constexpr GLint LEVEL_OF_DETAIL = 0;  // base image level; Level n is the nth mipmap reduction image
-constexpr GLint TEXTURE_BORDER = 0;  // this value MUST be zero
+constexpr GLint NUMBER_OF_TEXTURES = 1;  
+constexpr GLint LEVEL_OF_DETAIL = 0;  
+constexpr GLint TEXTURE_BORDER = 0; 
 
 GLuint load_texture(const char* filepath)
 {
@@ -124,7 +125,7 @@ GLuint load_texture(const char* filepath)
 void initialise()
 {
     SDL_Init(SDL_INIT_VIDEO);
-    g_display_window = SDL_CreateWindow("Pong Clone!",
+    g_display_window = SDL_CreateWindow("Halloween Pong!",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         WINDOW_WIDTH, WINDOW_HEIGHT,
         SDL_WINDOW_OPENGL);
@@ -159,7 +160,7 @@ void initialise()
 
     glUseProgram(g_shader_program.get_program_id());
 
-    glClearColor(BG_RED, BG_BLUE, BG_GREEN, BG_OPACITY);
+    glClearColor(BG_RED, BG_GREEN, BG_BLUE, BG_OPACITY);
 
     g_broom_texture_id = load_texture(BROOM_SPRITE_FILEPATH);
     g_broom1_texutre_id = load_texture(BROOM_SPRITE_FILEPATH);
@@ -190,15 +191,6 @@ void process_input()
         case SDL_KEYDOWN:
             switch (event.key.keysym.sym)
             {
-            case SDLK_LEFT:
-                // Move the player left
-                break;
-
-            case SDLK_RIGHT:
-                // Move the player right
-                g_broom_movement.x = 1.0f;
-                break;
-
             case SDLK_q:
                 // Quit the game with a keystroke
                 g_app_status = TERMINATED;
@@ -216,29 +208,29 @@ void process_input()
 
     const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-    if (key_state[SDL_SCANCODE_LEFT])
-    {
-        g_broom_movement.x = -1.0f;
-    }
-    else if (key_state[SDL_SCANCODE_RIGHT])
-    {
-        g_broom_movement.x = 1.0f;
-    }
-
     if (key_state[SDL_SCANCODE_UP])
     {
-        g_broom_movement.y = 1.0f;
+        g_broom1_movement.y = 1.0f;
     }
     else if (key_state[SDL_SCANCODE_DOWN])
     {
-        g_broom_movement.y = -1.0f;
+        g_broom1_movement.y = -1.0f;
     }
+
+	if (key_state[SDL_SCANCODE_W])
+	{
+		g_broom_movement.y = 1.0f;
+	}
+	else if (key_state[SDL_SCANCODE_S])
+	{
+		g_broom_movement.y = -1.0f;
+	}
 
     // This makes sure that the player can't "cheat" their way into moving
     // faster
-    if (glm::length(g_broom_movement) > 1.0f)
+    if (glm::length(g_broom1_movement) > 1.0f)
     {
-        g_broom_movement = glm::normalize(g_broom_movement);
+        g_broom1_movement = glm::normalize(g_broom1_movement);
     }
 }
 
@@ -250,6 +242,7 @@ void update()
 
     // Add direction * units per second * elapsed time
     g_broom_position += g_broom_movement * g_broom_speed * delta_time;
+    g_broom1_position += g_broom1_movement * g_broom1_speed * delta_time;
 
     g_broom_matrix = glm::mat4(1.0f);
     g_broom_matrix = glm::translate(g_broom_matrix, INIT_POS_BROOM);
