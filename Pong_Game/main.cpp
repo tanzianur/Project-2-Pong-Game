@@ -215,7 +215,7 @@ bool is_out_of_bounds(glm::vec3 fire_position) {
 }
 
 // Fireball movement
-void fire_direction() {
+void fireball_movement() {
     g_fire_movement = glm::vec3(0.0f);
     static float speed_scale = 1.0f;
 
@@ -485,7 +485,7 @@ int main(int argc, char* argv[])
     {
         process_input();
         if (game_end == false) {
-            fire_direction();
+            fireball_movement();
             update();
         }
 
