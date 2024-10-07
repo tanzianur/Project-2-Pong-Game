@@ -293,7 +293,6 @@ void fireball_movement() {
 
 void process_input()
 {
-    // VERY IMPORTANT: If nothing is pressed, we don't want to go anywhere
     g_broom_movement = glm::vec3(0.0f);
 	g_broom1_movement = glm::vec3(0.0f);
 
