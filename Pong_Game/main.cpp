@@ -50,15 +50,13 @@ constexpr char BROOM_SPRITE_FILEPATH[] = "broom.png",
 FIRE_SPRITE_FILEPATH[] = "fireball.png";
 
 constexpr float MINIMUM_COLLISION_DISTANCE = 1.0f;
-constexpr float ANGLE = glm::radians(90.0f);
-constexpr float ROT_SPEED = 200.0f;
 
 constexpr glm::vec3 INIT_SCALE_BROOM = glm::vec3(0.5f, 1.3611f, 0.0f),
 INIT_SCALE_BROOM1 = glm::vec3(0.5f, 1.3611f, 0.0f),
 INIT_SCALE_FIRE = glm::vec3(0.33f, 0.4f, 0.0f),
-INIT_POS_BROOM = glm::vec3(-4.0f, 0.0f, 0.0f),
-INIT_POS_BROOM1 = glm::vec3(4.0f, 0.0f, 0.0f),
-INIT_POS_FIRE = glm::vec3(-2.0f, 0.0f, 0.0f);
+INIT_POS_BROOM = glm::vec3(-4.5f, 0.0f, 0.0f),
+INIT_POS_BROOM1 = glm::vec3(4.5f, 0.0f, 0.0f),
+INIT_POS_FIRE = glm::vec3(0.0f, 0.0f, 0.0f);
 
 SDL_Window* g_display_window;
 
@@ -81,8 +79,27 @@ glm::vec3 g_broom1_movement = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_fire_position = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_fire_movement = glm::vec3(0.0f, 0.0f, 0.0f);
 
-float g_broom_speed = 4.0f;  // move 2 units per second
-float g_broom1_speed = 4.0f;  // move 2 units per second
+const float g_broom_speed = 4.0f;  // move 2 units per second
+const float g_broom1_speed = 4.0f;  // move 2 units per second
+
+bool broom_upper = false;
+bool broom_lower = false;
+
+bool broom1_upper = false;
+bool broom1_lower = false;
+
+float ROT_ANGLE = 0.0f;
+float ROT_FIRE_SPEED = 45.0f;
+
+bool left_collision = false,
+right_collision = false,
+upper_collision = false,
+bottom_collision = false;
+
+float x_speed = 0.0f;
+float y_speed = 0.0f;
+
+bool game_end = false;
 
 void initialise();
 void process_input();
@@ -122,6 +139,8 @@ GLuint load_texture(const char* filepath)
     return textureID;
 }
 
+
+
 void initialise()
 {
     SDL_Init(SDL_INIT_VIDEO);
@@ -149,8 +168,8 @@ void initialise()
     g_broom_matrix = glm::mat4(1.0f);
     g_broom1_matrix = glm::mat4(1.0f);
     g_fire_matrix = glm::mat4(1.0f);
-    g_fire_matrix = glm::translate(g_fire_matrix, glm::vec3(1.0f, 1.0f, 0.0f));
-    g_fire_position += g_fire_movement;
+   // g_fire_matrix = glm::translate(g_fire_matrix, glm::vec3(1.0f, 1.0f, 0.0f));
+    //g_fire_position += g_fire_movement;
 
     g_view_matrix = glm::mat4(1.0f);
     g_projection_matrix = glm::ortho(-5.0f, 5.0f, -3.75f, 3.75f, -1.0f, 1.0f);
@@ -170,6 +189,105 @@ void initialise()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
+
+bool collision(glm::vec3& position_1, glm::vec3 &position_2, const glm::vec3 &init_pos) {
+    float x_distance = fabs(position_1.x - init_pos.x) - ((INIT_SCALE_FIRE.x + INIT_SCALE_BROOM.x) / 2.0f);
+
+    float y_distance = fabs(position_1.y - position_2.y) - ((INIT_SCALE_FIRE.y + INIT_SCALE_BROOM.y) / 2.0f);
+
+    if (x_distance < 0 && y_distance <= 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+
+bool is_out_of_bounds(glm::vec3 fire_position) {
+    float left_bound = -5.0f;
+    float right_bound = 5.0f;
+
+    if (fire_position.x < left_bound || fire_position.x > right_bound) {
+        return true;
+    }
+    return false;
+}
+
+void fire_direction() {
+    g_fire_movement = glm::vec3(0.0f);
+    static float speed_scale = 1.0f;
+
+    if (collision(g_fire_position, g_broom_position, INIT_POS_BROOM)) {
+        right_collision = false;
+        left_collision = true;
+        x_speed = ((float)rand()) / ((float)RAND_MAX) + 1.5f + 1.0f;
+        y_speed = ((float)rand()) / ((float)RAND_MAX) / 2.0f + 0.5f;
+
+        double random_dir = ((double)rand()) / double(RAND_MAX);
+        if (random_dir >= 0.5) {
+            upper_collision = true;
+            bottom_collision = false;
+        }
+        else {
+            upper_collision = false;
+            bottom_collision = true;
+        }
+        speed_scale += 0.05;
+    }
+    else if (collision(g_fire_position, g_broom1_position, INIT_POS_BROOM1)) {
+        right_collision = true;
+        left_collision = false;
+        x_speed = ((float)rand()) / ((float)RAND_MAX) + 1.5f + 1.0f;
+        y_speed = ((float)rand()) / ((float)RAND_MAX) / 2.0f + 0.5f;
+
+        double random_dir = ((double)rand()) / double(RAND_MAX);
+        if (random_dir >= 0.5) {
+            upper_collision = true;
+            bottom_collision = false;
+        }
+        else {
+            upper_collision = false;
+            bottom_collision = true;
+        }
+        speed_scale += 0.05f;
+    }
+    if (g_fire_position.y > 3.5f) {
+        upper_collision = false;
+        bottom_collision = true;
+    }
+    else if (g_fire_position.y < -3.5f) {
+        upper_collision = true;
+        bottom_collision = false;
+    }
+
+    if (left_collision) {
+        g_fire_movement.x = x_speed;
+    }
+    else if (right_collision) {
+        g_fire_movement.x = -x_speed;
+    }
+    else {
+        g_fire_movement.x = 1;
+    }
+    if (upper_collision) {
+        g_fire_movement.y = y_speed;
+    }
+    else if (bottom_collision) {
+        g_fire_movement.y = -y_speed;
+    }
+    else {
+        g_fire_movement.y = 0.0f;
+    }
+    if (g_fire_position.x < -5.0) {
+        std::cout << "player 2 wins\n";
+
+    }
+    else if (g_fire_position.x > 5.0) {
+        std::cout << "player 1 wins\n";
+    }
+}
+ 
 
 void process_input()
 {
@@ -208,29 +326,61 @@ void process_input()
 
     const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-    if (key_state[SDL_SCANCODE_UP])
+    if (key_state[SDL_SCANCODE_UP] and !broom1_upper)
     {
         g_broom1_movement.y = 1.0f;
     }
-    else if (key_state[SDL_SCANCODE_DOWN])
+    else if (key_state[SDL_SCANCODE_DOWN] and !broom1_lower)
     {
         g_broom1_movement.y = -1.0f;
     }
 
-	if (key_state[SDL_SCANCODE_W])
+	if (key_state[SDL_SCANCODE_W] and !broom_upper)
 	{
 		g_broom_movement.y = 1.0f;
 	}
-	else if (key_state[SDL_SCANCODE_S])
+	else if (key_state[SDL_SCANCODE_S] and !broom_lower)
 	{
 		g_broom_movement.y = -1.0f;
 	}
+
+    // setting broom1 bounds
+    if (g_broom1_position.y > 3.0f) {
+        broom1_upper = true;
+    }
+    else {
+        broom1_upper = false;
+    }
+    if (g_broom1_position.y < -3.0f) {
+        broom1_lower = true;
+    }
+    else {
+        broom1_lower = false;
+    }
+
+    // setting broom bounds
+    if (g_broom_position.y > 3.0f) {
+        broom_upper = true;
+    }
+    else {
+        broom_upper = false;
+    }
+    if (g_broom_position.y < -3.0f) {
+        broom_lower = true;
+    }
+    else {
+        broom_lower = false;
+    }
 
     // This makes sure that the player can't "cheat" their way into moving
     // faster
     if (glm::length(g_broom1_movement) > 1.0f)
     {
         g_broom1_movement = glm::normalize(g_broom1_movement);
+    }
+    if (glm::length(g_broom_movement) > 1.0f)
+    {
+        g_broom_movement = glm::normalize(g_broom_movement);
     }
 }
 
@@ -243,7 +393,19 @@ void update()
     // Add direction * units per second * elapsed time
     g_broom_position += g_broom_movement * g_broom_speed * delta_time;
     g_broom1_position += g_broom1_movement * g_broom1_speed * delta_time;
+    g_fire_position += g_fire_movement * delta_time;
 
+    if (is_out_of_bounds(g_fire_position)) {
+        game_end = true;
+        g_fire_position = glm::vec3(0.0f, 0.0f, 0.0f);
+        g_fire_movement = glm::vec3(0.5f, 0.5f, 0.0f);
+        ROT_ANGLE = 0.0f;
+
+        g_broom_position = glm::vec3(0.0f, 0.0f, 0.0f);
+        g_broom1_position = glm::vec3(0.0f, 0.0f, 0.0f);
+    }
+    
+    //game_end = false;
     g_broom_matrix = glm::mat4(1.0f);
     g_broom_matrix = glm::translate(g_broom_matrix, INIT_POS_BROOM);
     g_broom_matrix = glm::translate(g_broom_matrix, g_broom_position);
@@ -254,23 +416,18 @@ void update()
 
     g_fire_matrix = glm::mat4(1.0f);
     g_fire_matrix = glm::translate(g_fire_matrix, INIT_POS_FIRE);
+    g_fire_matrix = glm::translate(g_fire_matrix, g_fire_position);
 
     g_broom_matrix = glm::scale(g_broom_matrix, INIT_SCALE_BROOM);
 	g_broom1_matrix = glm::scale(g_broom1_matrix, INIT_SCALE_BROOM1);
     g_fire_matrix = glm::scale(g_fire_matrix, INIT_SCALE_FIRE);
 
-    float x_distance = fabs(g_broom_position.x + INIT_POS_BROOM.x - INIT_POS_FIRE.x) -
-        ((INIT_SCALE_FIRE.x + INIT_SCALE_BROOM.x) / 2.0f);
+    ROT_ANGLE += ROT_FIRE_SPEED * delta_time;
 
-    float y_distance = fabs(g_broom_position.y + INIT_POS_BROOM.y - INIT_POS_FIRE.y) -
-        ((INIT_SCALE_FIRE.y + INIT_SCALE_BROOM.y) / 2.0f);
 
-    if (x_distance < -0.19f && y_distance < 0.0f)
-    {
-       // std::cout << std::time(nullptr) << ": Collision.\n";
-        g_app_status = TERMINATED;
-    } 
 }
+
+
 void draw_object(glm::mat4& object_model_matrix, GLuint& object_texture_id)
 {
     g_shader_program.set_model_matrix(object_model_matrix);
@@ -321,7 +478,12 @@ int main(int argc, char* argv[])
     while (g_app_status == RUNNING)
     {
         process_input();
-        update();
+        if (game_end == false) {
+            fire_direction();
+            update();
+        }
+        
+        
         render();
     }
 
