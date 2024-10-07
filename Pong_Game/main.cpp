@@ -195,7 +195,7 @@ bool collision(glm::vec3& position_1, glm::vec3 &position_2, const glm::vec3 &in
 
     float y_distance = fabs(position_1.y - position_2.y) - ((INIT_SCALE_FIRE.y + INIT_SCALE_BROOM.y) / 2.0f);
 
-    if (x_distance < -0.19 && y_distance <= -0.1) { // had to adjust from 0 because there's invisible padding on the paddles
+    if (x_distance < -0.19 && y_distance <= -0.19) { // had to adjust from 0 because there's invisible padding on the paddles
         return true;
     }
     else {
