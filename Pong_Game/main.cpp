@@ -79,8 +79,8 @@ glm::vec3 g_broom1_movement = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_fire_position = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_fire_movement = glm::vec3(0.0f, 0.0f, 0.0f);
 
-const float g_broom_speed = 4.0f;  // move 2 units per second
-const float g_broom1_speed = 4.0f;  // move 2 units per second
+const float g_broom_speed = 4.0f;
+const float g_broom1_speed = 4.0f;
 
 bool broom_upper = false;
 bool broom_lower = false;
@@ -99,6 +99,7 @@ bottom_collision = false;
 float x_speed = 0.0f;
 float y_speed = 0.0f;
 
+bool single_player = false;
 bool game_end = false;
 
 void initialise();
@@ -168,8 +169,6 @@ void initialise()
     g_broom_matrix = glm::mat4(1.0f);
     g_broom1_matrix = glm::mat4(1.0f);
     g_fire_matrix = glm::mat4(1.0f);
-   // g_fire_matrix = glm::translate(g_fire_matrix, glm::vec3(1.0f, 1.0f, 0.0f));
-    //g_fire_position += g_fire_movement;
 
     g_view_matrix = glm::mat4(1.0f);
     g_projection_matrix = glm::ortho(-5.0f, 5.0f, -3.75f, 3.75f, -1.0f, 1.0f);
@@ -190,12 +189,13 @@ void initialise()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+// Check if ball hits the broomsticks
 bool collision(glm::vec3& position_1, glm::vec3 &position_2, const glm::vec3 &init_pos) {
     float x_distance = fabs(position_1.x - init_pos.x) - ((INIT_SCALE_FIRE.x + INIT_SCALE_BROOM.x) / 2.0f);
 
     float y_distance = fabs(position_1.y - position_2.y) - ((INIT_SCALE_FIRE.y + INIT_SCALE_BROOM.y) / 2.0f);
 
-    if (x_distance < 0 && y_distance <= 0) {
+    if (x_distance < -0.19 && y_distance <= -0.1) { // had to adjust from 0 because there's invisible padding on the paddles
         return true;
     }
     else {
@@ -203,7 +203,7 @@ bool collision(glm::vec3& position_1, glm::vec3 &position_2, const glm::vec3 &in
     }
 }
 
-
+// Check if ball hits left or right walls
 bool is_out_of_bounds(glm::vec3 fire_position) {
     float left_bound = -5.0f;
     float right_bound = 5.0f;
@@ -214,6 +214,7 @@ bool is_out_of_bounds(glm::vec3 fire_position) {
     return false;
 }
 
+// Fireball movement
 void fire_direction() {
     g_fire_movement = glm::vec3(0.0f);
     static float speed_scale = 1.0f;
@@ -221,10 +222,11 @@ void fire_direction() {
     if (collision(g_fire_position, g_broom_position, INIT_POS_BROOM)) {
         right_collision = false;
         left_collision = true;
-        x_speed = ((float)rand()) / ((float)RAND_MAX) + 1.5f + 1.0f;
-        y_speed = ((float)rand()) / ((float)RAND_MAX) / 2.0f + 0.5f;
+        // using random numbers for x speed and y speed of ball
+        x_speed = ((rand() % 100) / 100.0) + 2.5f;
+        y_speed = ((rand() % 100) / 100.0) / 2.5f;
 
-        double random_dir = ((double)rand()) / double(RAND_MAX);
+        double random_dir = (rand() % 100) / 100.0;
         if (random_dir >= 0.5) {
             upper_collision = true;
             bottom_collision = false;
@@ -233,15 +235,15 @@ void fire_direction() {
             upper_collision = false;
             bottom_collision = true;
         }
-        speed_scale += 0.05;
+        speed_scale += 0.05; // slight speed boost upon collision with paddle
     }
     else if (collision(g_fire_position, g_broom1_position, INIT_POS_BROOM1)) {
         right_collision = true;
         left_collision = false;
-        x_speed = ((float)rand()) / ((float)RAND_MAX) + 1.5f + 1.0f;
-        y_speed = ((float)rand()) / ((float)RAND_MAX) / 2.0f + 0.5f;
+        x_speed = ((rand() % 100) / 100.0) + 2.5f;
+        y_speed = ((rand() % 100) / 100.0) / 2.5f;
 
-        double random_dir = ((double)rand()) / double(RAND_MAX);
+        double random_dir = (rand() % 100) / 100.0;
         if (random_dir >= 0.5) {
             upper_collision = true;
             bottom_collision = false;
@@ -313,6 +315,9 @@ void process_input()
                 // Quit the game with a keystroke
                 g_app_status = TERMINATED;
                 break;
+            case SDLK_t:
+                single_player = false;
+                break;
 
             default:
                 break;
@@ -343,6 +348,9 @@ void process_input()
 	{
 		g_broom_movement.y = -1.0f;
 	}
+    if (key_state[SDL_SCANCODE_T]) {
+        single_player = !single_player;
+    }
 
     // setting broom1 bounds
     if (g_broom1_position.y > 3.0f) {
@@ -372,8 +380,6 @@ void process_input()
         broom_lower = false;
     }
 
-    // This makes sure that the player can't "cheat" their way into moving
-    // faster
     if (glm::length(g_broom1_movement) > 1.0f)
     {
         g_broom1_movement = glm::normalize(g_broom1_movement);
@@ -386,8 +392,8 @@ void process_input()
 
 void update()
 {
-    float ticks = (float)SDL_GetTicks() / MILLISECONDS_IN_SECOND; // get the current number of ticks
-    float delta_time = ticks - g_previous_ticks; // the delta time is the difference from the last frame
+    float ticks = (float)SDL_GetTicks() / MILLISECONDS_IN_SECOND;
+    float delta_time = ticks - g_previous_ticks; 
     g_previous_ticks = ticks;
 
     // Add direction * units per second * elapsed time
@@ -432,7 +438,7 @@ void draw_object(glm::mat4& object_model_matrix, GLuint& object_texture_id)
 {
     g_shader_program.set_model_matrix(object_model_matrix);
     glBindTexture(GL_TEXTURE_2D, object_texture_id);
-    glDrawArrays(GL_TRIANGLES, 0, 6); // we are now drawing 2 triangles, so we use 6 instead of 3
+    glDrawArrays(GL_TRIANGLES, 0, 6); 
 }
 
 void render() {
@@ -482,8 +488,7 @@ int main(int argc, char* argv[])
             fire_direction();
             update();
         }
-        
-        
+
         render();
     }
 
