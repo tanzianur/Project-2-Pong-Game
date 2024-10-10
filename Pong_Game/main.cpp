@@ -47,28 +47,33 @@ F_SHADER_PATH[] = "shaders/fragment_textured.glsl";
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 
 constexpr char BROOM_SPRITE_FILEPATH[] = "broom.png",
-FIRE_SPRITE_FILEPATH[] = "fireball.png";
+FIRE_SPRITE_FILEPATH[] = "fireball.png",
+LINE_SPRITE_FILEPATH[] = "line.png";
 
 constexpr float MINIMUM_COLLISION_DISTANCE = 1.0f;
 
 constexpr glm::vec3 INIT_SCALE_BROOM = glm::vec3(0.5f, 1.3611f, 0.0f),
 INIT_SCALE_BROOM1 = glm::vec3(0.5f, 1.3611f, 0.0f),
 INIT_SCALE_FIRE = glm::vec3(0.33f, 0.4f, 0.0f),
+INIT_SCALE_LINE = glm::vec3(6.0f, 11.6151f, 0.0f),
 INIT_POS_BROOM = glm::vec3(-4.5f, 0.0f, 0.0f),
 INIT_POS_BROOM1 = glm::vec3(4.5f, 0.0f, 0.0f),
-INIT_POS_FIRE = glm::vec3(0.0f, 0.0f, 0.0f);
+INIT_POS_FIRE = glm::vec3(0.0f, 0.0f, 0.0f),
+INIT_POS_LINE = glm::vec3(0.0f, 0.0f, 0.0f);
+
 
 SDL_Window* g_display_window;
 
 AppStatus g_app_status = RUNNING;
 ShaderProgram g_shader_program = ShaderProgram();
-glm::mat4 g_view_matrix, g_broom_matrix, g_projection_matrix, g_fire_matrix, g_broom1_matrix;
+glm::mat4 g_view_matrix, g_broom_matrix, g_projection_matrix, g_fire_matrix, g_broom1_matrix, g_line_matrix;
 
 float g_previous_ticks = 0.0f;
 
 GLuint g_broom_texture_id;
 GLuint g_broom1_texutre_id;
 GLuint g_fire_texture_id;
+GLuint g_line_texture_id;
 
 
 glm::vec3 g_broom_position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -115,7 +120,6 @@ constexpr GLint TEXTURE_BORDER = 0;
 
 GLuint load_texture(const char* filepath)
 {
-    // STEP 1: Loading the image file
     int width, height, number_of_components;
     unsigned char* image = stbi_load(filepath, &width, &height, &number_of_components, STBI_rgb_alpha);
 
@@ -124,18 +128,14 @@ GLuint load_texture(const char* filepath)
         LOG("Unable to load image. Make sure the path is correct.");
         assert(false);
     }
-
-    // STEP 2: Generating and binding a texture ID to our image
     GLuint textureID;
     glGenTextures(NUMBER_OF_TEXTURES, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, LEVEL_OF_DETAIL, GL_RGBA, width, height, TEXTURE_BORDER, GL_RGBA, GL_UNSIGNED_BYTE, image);
 
-    // STEP 3: Setting our texture filter parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    // STEP 4: Releasing our file from memory and returning our texture id
     stbi_image_free(image);
 
     return textureID;
@@ -170,6 +170,7 @@ void initialise()
     g_broom_matrix = glm::mat4(1.0f);
     g_broom1_matrix = glm::mat4(1.0f);
     g_fire_matrix = glm::mat4(1.0f);
+	g_line_matrix = glm::mat4(1.0f);
 
     g_view_matrix = glm::mat4(1.0f);
     g_projection_matrix = glm::ortho(-5.0f, 5.0f, -3.75f, 3.75f, -1.0f, 1.0f);
@@ -183,6 +184,7 @@ void initialise()
 
     g_broom_texture_id = load_texture(BROOM_SPRITE_FILEPATH);
     g_broom1_texutre_id = load_texture(BROOM_SPRITE_FILEPATH);
+    g_line_texture_id = load_texture(LINE_SPRITE_FILEPATH);
     g_fire_texture_id = load_texture(FIRE_SPRITE_FILEPATH);
 
     // enable blending
@@ -387,7 +389,6 @@ void process_input_2()
             case SDLK_t:
                 single_player = false;
                 break;
-
             default:
                 break;
             }
@@ -490,6 +491,10 @@ void update()
 	g_broom1_matrix = glm::scale(g_broom1_matrix, INIT_SCALE_BROOM1);
     g_fire_matrix = glm::scale(g_fire_matrix, INIT_SCALE_FIRE);
 
+	g_line_matrix = glm::mat4(1.0f);
+	g_line_matrix = glm::translate(g_line_matrix, INIT_POS_LINE);
+	g_line_matrix = glm::scale(g_line_matrix, INIT_SCALE_LINE);
+
     ROT_ANGLE += ROT_FIRE_SPEED * delta_time;
 
 }
@@ -524,6 +529,7 @@ void render() {
     glEnableVertexAttribArray(g_shader_program.get_tex_coordinate_attribute());
 
     // Bind texture
+    draw_object(g_line_matrix, g_line_texture_id);
     draw_object(g_broom_matrix, g_broom_texture_id);
 	draw_object(g_broom1_matrix, g_broom_texture_id);
     draw_object(g_fire_matrix, g_fire_texture_id);
