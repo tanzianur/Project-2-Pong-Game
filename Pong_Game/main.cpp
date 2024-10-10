@@ -450,7 +450,6 @@ void broom_move() {
     else {
         g_broom_movement.y = 0.0f;
     }
-   
 }
 
 void update()
@@ -468,7 +467,6 @@ void update()
         game_end = true;
         g_fire_position = glm::vec3(0.0f, 0.0f, 0.0f);
         g_fire_movement = glm::vec3(0.5f, 0.5f, 0.0f);
-        ROT_ANGLE = 0.0f;
 
         g_broom_position = glm::vec3(0.0f, 0.0f, 0.0f);
         g_broom1_position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -495,7 +493,7 @@ void update()
 	g_line_matrix = glm::translate(g_line_matrix, INIT_POS_LINE);
 	g_line_matrix = glm::scale(g_line_matrix, INIT_SCALE_LINE);
 
-    ROT_ANGLE += ROT_FIRE_SPEED * delta_time;
+    //ROT_ANGLE += ROT_FIRE_SPEED * delta_time;
 
 }
 
