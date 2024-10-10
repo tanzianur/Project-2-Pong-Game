@@ -54,8 +54,8 @@ constexpr float MINIMUM_COLLISION_DISTANCE = 1.0f;
 
 constexpr glm::vec3 INIT_SCALE_BROOM = glm::vec3(0.5f, 1.3611f, 0.0f),
 INIT_SCALE_BROOM1 = glm::vec3(0.5f, 1.3611f, 0.0f),
-INIT_SCALE_FIRE = glm::vec3(0.33f, 0.4f, 0.0f),
-INIT_SCALE_LINE = glm::vec3(6.0f, 11.6151f, 0.0f),
+INIT_SCALE_FIRE = glm::vec3(0.4f, 0.48f, 0.0f),
+INIT_SCALE_LINE = glm::vec3(8.0f, 9.2379f, 0.0f),
 INIT_POS_BROOM = glm::vec3(-4.5f, 0.0f, 0.0f),
 INIT_POS_BROOM1 = glm::vec3(4.5f, 0.0f, 0.0f),
 INIT_POS_FIRE = glm::vec3(0.0f, 0.0f, 0.0f),
@@ -199,7 +199,7 @@ bool collision(glm::vec3& position_1, glm::vec3 &position_2, const glm::vec3 &in
     float y_distance = fabs(position_1.y - position_2.y) - ((INIT_SCALE_FIRE.y + INIT_SCALE_BROOM.y) / 2.0f);
     
     // had to adjust from 0 to -0.19 because there's invisible padding on the broomsticks
-    // that I don't know how to remove
+    // that would make the collision happen too early.
     if (x_distance < -0.19 && y_distance <= -0.19) { 
         return true;
     }
