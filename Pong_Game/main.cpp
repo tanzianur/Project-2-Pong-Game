@@ -100,6 +100,7 @@ float x_speed = 0.0f;
 float y_speed = 0.0f;
 
 bool single_player = false;
+bool move_up_down = true;
 bool game_end = false;
 
 void initialise();
@@ -314,9 +315,6 @@ void process_input()
                 // Quit the game with a keystroke
                 g_app_status = TERMINATED;
                 break;
-            case SDLK_t:
-                single_player = false;
-                break;
 
             default:
                 break;
@@ -339,18 +337,6 @@ void process_input()
         g_broom1_movement.y = -1.0f;
     }
 
-	if (key_state[SDL_SCANCODE_W] and !broom_upper)
-	{
-		g_broom_movement.y = 1.0f;
-	}
-	else if (key_state[SDL_SCANCODE_S] and !broom_lower)
-	{
-		g_broom_movement.y = -1.0f;
-	}
-    if (key_state[SDL_SCANCODE_T]) {
-        single_player = !single_player;
-    }
-
     // setting broom1 bounds
     if (g_broom1_position.y > 3.0f) {
         broom1_upper = true;
@@ -363,6 +349,63 @@ void process_input()
     }
     else {
         broom1_lower = false;
+    }
+
+    if (glm::length(g_broom1_movement) > 1.0f)
+    {
+        g_broom1_movement = glm::normalize(g_broom1_movement);
+    }
+}
+
+
+void process_input_2()
+{
+    g_broom_movement = glm::vec3(0.0f);
+   
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+            // End game
+        case SDL_QUIT:
+        case SDL_WINDOWEVENT_CLOSE:
+            g_app_status = TERMINATED;
+            break;
+
+        case SDL_KEYDOWN:
+            switch (event.key.keysym.sym)
+            {
+            case SDLK_q:
+                // Quit the game with a keystroke
+                g_app_status = TERMINATED;
+                break;
+            case SDLK_t:
+                single_player = false;
+                break;
+
+            default:
+                break;
+            }
+
+        default:
+            break;
+        }
+    }
+
+
+    const Uint8* key_state = SDL_GetKeyboardState(NULL);
+
+    if (key_state[SDL_SCANCODE_W] and !broom_upper)
+    {
+        g_broom_movement.y = 1.0f;
+    }
+    else if (key_state[SDL_SCANCODE_S] and !broom_lower)
+    {
+        g_broom_movement.y = -1.0f;
+    }
+    if (key_state[SDL_SCANCODE_T]) {
+        single_player = !single_player;
     }
 
     // setting broom bounds
@@ -378,14 +421,27 @@ void process_input()
     else {
         broom_lower = false;
     }
-
-    if (glm::length(g_broom1_movement) > 1.0f)
-    {
-        g_broom1_movement = glm::normalize(g_broom1_movement);
-    }
     if (glm::length(g_broom_movement) > 1.0f)
     {
         g_broom_movement = glm::normalize(g_broom_movement);
+    }
+}
+
+void broom_move() {
+    if (move_up_down) {
+        g_broom_movement.y = 1.0f;
+    }
+    else {
+        g_broom_movement.y = -1.0f;
+    }
+    if (g_broom_position.y > 3.0f) {
+        move_up_down = false;
+    }
+    else if (g_broom_position.y < -2.9f) {
+        move_up_down = true;
+    }
+    else {
+        g_broom_movement.y = 0.0f;
     }
 }
 
@@ -483,6 +539,13 @@ int main(int argc, char* argv[])
     while (g_app_status == RUNNING)
     {
         process_input();
+        if (move_up_down) {
+            process_input_2();
+        }
+        else {
+            broom_move();
+        }
+        
         if (game_end == false) {
             fireball_movement();
             update();
