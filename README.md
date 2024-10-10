@@ -1,5 +1,5 @@
 # Project-2-Pong-Game
 Simple Halloween themed pong game clone that implements collisions and user input.
 
-https://github.com/user-attachments/assets/65b12f8d-dfc3-4f5d-8204-1624c620f146
+https://github.com/user-attachments/assets/331c9c7c-ed54-45f7-9466-aa8bacbef57a
 
