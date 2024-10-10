@@ -52,8 +52,8 @@ LINE_SPRITE_FILEPATH[] = "line.png";
 
 constexpr float MINIMUM_COLLISION_DISTANCE = 1.0f;
 
-constexpr glm::vec3 INIT_SCALE_BROOM = glm::vec3(0.5f, 1.3611f, 0.0f),
-INIT_SCALE_BROOM1 = glm::vec3(0.5f, 1.3611f, 0.0f),
+constexpr glm::vec3 INIT_SCALE_BROOM = glm::vec3(0.55f, 1.49721f, 0.0f),
+INIT_SCALE_BROOM1 = glm::vec3(0.55f, 1.49721f, 0.0f),
 INIT_SCALE_FIRE = glm::vec3(0.4f, 0.48f, 0.0f),
 INIT_SCALE_LINE = glm::vec3(8.0f, 9.2379f, 0.0f),
 INIT_POS_BROOM = glm::vec3(-4.5f, 0.0f, 0.0f),
