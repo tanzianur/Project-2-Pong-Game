@@ -195,8 +195,10 @@ bool collision(glm::vec3& position_1, glm::vec3 &position_2, const glm::vec3 &in
     float x_distance = fabs(position_1.x - init_pos.x) - ((INIT_SCALE_FIRE.x + INIT_SCALE_BROOM.x) / 2.0f);
 
     float y_distance = fabs(position_1.y - position_2.y) - ((INIT_SCALE_FIRE.y + INIT_SCALE_BROOM.y) / 2.0f);
-
-    if (x_distance < -0.19 && y_distance <= -0.19) { // had to adjust from 0 because there's invisible padding on the paddles
+    
+    // had to adjust from 0 to -0.19 because there's invisible padding on the broomsticks
+    // that I don't know how to remove
+    if (x_distance < -0.19 && y_distance <= -0.19) { 
         return true;
     }
     else {
@@ -271,7 +273,7 @@ void fireball_movement() {
         g_fire_movement.x = -x_speed;
     }
     else {
-        g_fire_movement.x = 1;
+        g_fire_movement.x = 1.0f;
     }
     if (upper_collision) {
         g_fire_movement.y = y_speed;
@@ -284,10 +286,12 @@ void fireball_movement() {
     }
     if (g_fire_position.x < -5.0) {
         std::cout << "player 2 wins\n";
+        game_end = true;
 
     }
     else if (g_fire_position.x > 5.0) {
         std::cout << "player 1 wins\n";
+        game_end = true;
     }
 }
  
@@ -428,21 +432,24 @@ void process_input_2()
 }
 
 void broom_move() {
-    if (move_up_down) {
-        g_broom_movement.y = 1.0f;
-    }
-    else {
-        g_broom_movement.y = -1.0f;
-    }
-    if (g_broom_position.y > 3.0f) {
-        move_up_down = false;
-    }
-    else if (g_broom_position.y < -2.9f) {
-        move_up_down = true;
+    if (game_end == false) {
+        if (move_up_down) {
+            g_broom_movement.y = 1.0f;
+        }
+        else {
+            g_broom_movement.y = -1.0f;
+        }
+        if (g_broom_position.y > 3.0f) {
+            move_up_down = false;
+        }
+        else if (g_broom_position.y < -3.0f) {
+            move_up_down = true;
+        }
     }
     else {
         g_broom_movement.y = 0.0f;
     }
+   
 }
 
 void update()
@@ -484,7 +491,6 @@ void update()
     g_fire_matrix = glm::scale(g_fire_matrix, INIT_SCALE_FIRE);
 
     ROT_ANGLE += ROT_FIRE_SPEED * delta_time;
-
 
 }
 
@@ -539,13 +545,13 @@ int main(int argc, char* argv[])
     while (g_app_status == RUNNING)
     {
         process_input();
-        if (move_up_down) {
-            process_input_2();
-        }
-        else {
+        if (single_player) {
             broom_move();
         }
-        
+        else {
+            process_input_2();
+        }
+
         if (game_end == false) {
             fireball_movement();
             update();
