@@ -108,6 +108,9 @@ bool single_player = false;
 bool move_up_down = true;
 bool game_end = false;
 
+bool player1_wins = false;
+bool player2_wins = false;
+
 void initialise();
 void process_input();
 void update();
@@ -289,11 +292,13 @@ void fireball_movement() {
     if (g_fire_position.x < -5.0) {
         std::cout << "player 2 wins\n";
         game_end = true;
+		player2_wins = true;
 
     }
     else if (g_fire_position.x > 5.0) {
         std::cout << "player 1 wins\n";
         game_end = true;
+		player1_wins = true;
     }
 }
  
@@ -318,10 +323,14 @@ void process_input()
             switch (event.key.keysym.sym)
             {
             case SDLK_q:
-                // Quit the game with a keystroke
+                // Quit the game with q
                 g_app_status = TERMINATED;
                 break;
-
+			case SDLK_SPACE:
+				// Start the game with spacebar
+				game_end = false;
+                single_player = false;
+				break;
             default:
                 break;
             }
