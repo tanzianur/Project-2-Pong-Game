@@ -50,7 +50,8 @@ constexpr char BROOM_SPRITE_FILEPATH[] = "broom.png",
 FIRE_SPRITE_FILEPATH[] = "fireball.png",
 LINE_SPRITE_FILEPATH[] = "line.png",
 PLAYER1_WIN_FILEPATH[] = "player1wins.png",
-PLAYER2_WIN_FILEPATH[] = "player2wins.png";
+PLAYER2_WIN_FILEPATH[] = "player2wins.png",
+BACKGROUND_FILEPATH[] = "background.jpg";
 
 constexpr float MINIMUM_COLLISION_DISTANCE = 1.0f;
 
@@ -60,19 +61,29 @@ INIT_SCALE_FIRE = glm::vec3(0.4f, 0.48f, 0.0f),
 INIT_SCALE_LINE = glm::vec3(8.0f, 9.2379f, 0.0f),
 INIT_SCALE_PLAYER1_WIN = glm::vec3(5.0f, 2.8125f, 0.0f),
 INIT_SCALE_PLAYER2_WIN = glm::vec3(5.0f, 2.8125f, 0.0f),
+INIT_SCALE_BACKGROUND = glm::vec3(12.0f, 7.5f, 0.0f),
 INIT_POS_BROOM = glm::vec3(-4.5f, 0.0f, 0.0f),
 INIT_POS_BROOM1 = glm::vec3(4.5f, 0.0f, 0.0f),
 INIT_POS_FIRE = glm::vec3(0.0f, 0.0f, 0.0f),
 INIT_POS_LINE = glm::vec3(0.0f, 0.0f, 0.0f),
 INIT_POS_PLAYER1_WIN = glm::vec3(-0.2f, 2.0f, 0.0f),
-INIT_POS_PLAYER2_WIN = glm::vec3(0.2f, 2.0f, 0.0f);
+INIT_POS_PLAYER2_WIN = glm::vec3(0.2f, 2.0f, 0.0f),
+INIT_POS_BACKGROUND = glm::vec3(0.0f, 0.0f, 0.0f);
 
 
 SDL_Window* g_display_window;
 
 AppStatus g_app_status = RUNNING;
 ShaderProgram g_shader_program = ShaderProgram();
-glm::mat4 g_view_matrix, g_broom_matrix, g_projection_matrix, g_fire_matrix, g_broom1_matrix, g_line_matrix, g_player1win_matrix, g_player2win_matrix;
+glm::mat4 g_view_matrix,
+g_broom_matrix, 
+g_projection_matrix, 
+g_fire_matrix, 
+g_broom1_matrix, 
+g_line_matrix, 
+g_player1win_matrix, 
+g_player2win_matrix, 
+g_background_matrix;
 
 float g_previous_ticks = 0.0f;
 
@@ -82,6 +93,7 @@ GLuint g_fire_texture_id;
 GLuint g_line_texture_id;
 GLuint player1_win_texture_id;
 GLuint player2_win_texture_id;
+GLuint background_texture_id;
 
 
 glm::vec3 g_broom_position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -182,6 +194,7 @@ void initialise()
     g_broom1_matrix = glm::mat4(1.0f);
     g_fire_matrix = glm::mat4(1.0f);
     g_line_matrix = glm::mat4(1.0f);
+	g_background_matrix = glm::mat4(1.0f);
     g_player1win_matrix = glm::mat4(1.0f);
     g_player2win_matrix = glm::mat4(1.0f);
 
@@ -201,6 +214,7 @@ void initialise()
     g_fire_texture_id = load_texture(FIRE_SPRITE_FILEPATH);
     player1_win_texture_id = load_texture(PLAYER1_WIN_FILEPATH);
     player2_win_texture_id = load_texture(PLAYER2_WIN_FILEPATH);
+	background_texture_id = load_texture(BACKGROUND_FILEPATH);
 
     // enable blending
     glEnable(GL_BLEND);
@@ -260,7 +274,7 @@ void fireball_movement() {
             upper_collision = false;
             bottom_collision = true;
         }
-        speed_scale += 0.05; // slight speed boost upon collision with paddle
+        speed_scale += 0.3; // slight speed boost upon collision with paddle
     }
     else if (collision(g_fire_position, g_broom1_position, INIT_POS_BROOM1)) {
         right_collision = true;
@@ -420,6 +434,14 @@ void process_input_2()
             case SDLK_t:
                 single_player = false;
                 break;
+            case SDLK_SPACE:
+                // Start the game with spacebar
+                // Also serves as a toggle to make game back to two player mode
+                game_end = false;
+                single_player = false;
+                player1_wins = false;
+                player2_wins = false;
+                break;
             default:
                 break;
             }
@@ -524,6 +546,10 @@ void update()
     g_line_matrix = glm::translate(g_line_matrix, INIT_POS_LINE);
     g_line_matrix = glm::scale(g_line_matrix, INIT_SCALE_LINE);
 
+	g_background_matrix = glm::mat4(1.0f);
+	g_background_matrix = glm::translate(g_background_matrix, INIT_POS_BACKGROUND);
+	g_background_matrix = glm::scale(g_background_matrix, INIT_SCALE_BACKGROUND);
+
     g_player1win_matrix = glm::mat4(1.0f);
     g_player1win_matrix = glm::translate(g_player1win_matrix, INIT_POS_PLAYER1_WIN);
     g_player1win_matrix = glm::scale(g_player1win_matrix, INIT_SCALE_PLAYER1_WIN);
@@ -565,6 +591,7 @@ void render() {
     glEnableVertexAttribArray(g_shader_program.get_tex_coordinate_attribute());
 
     // Bind texture
+	draw_object(g_background_matrix, background_texture_id);
     draw_object(g_line_matrix, g_line_texture_id);
     draw_object(g_broom_matrix, g_broom_texture_id);
     draw_object(g_broom1_matrix, g_broom_texture_id);
