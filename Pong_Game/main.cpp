@@ -347,6 +347,7 @@ void process_input()
                 break;
 			case SDLK_SPACE:
 				// Start the game with spacebar
+                // Also serves as a toggle to make game back to two player mode
 				game_end = false;
                 single_player = false;
 				player1_wins = false;
