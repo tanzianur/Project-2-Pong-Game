@@ -125,9 +125,9 @@ void update();
 void render();
 void shutdown();
 
-constexpr GLint NUMBER_OF_TEXTURES = 1;  
-constexpr GLint LEVEL_OF_DETAIL = 0;  
-constexpr GLint TEXTURE_BORDER = 0; 
+constexpr GLint NUMBER_OF_TEXTURES = 1;
+constexpr GLint LEVEL_OF_DETAIL = 0;
+constexpr GLint TEXTURE_BORDER = 0;
 
 GLuint load_texture(const char* filepath)
 {
@@ -181,9 +181,9 @@ void initialise()
     g_broom_matrix = glm::mat4(1.0f);
     g_broom1_matrix = glm::mat4(1.0f);
     g_fire_matrix = glm::mat4(1.0f);
-	g_line_matrix = glm::mat4(1.0f);
-	g_player1win_matrix = glm::mat4(1.0f);
-	g_player2win_matrix = glm::mat4(1.0f);
+    g_line_matrix = glm::mat4(1.0f);
+    g_player1win_matrix = glm::mat4(1.0f);
+    g_player2win_matrix = glm::mat4(1.0f);
 
     g_view_matrix = glm::mat4(1.0f);
     g_projection_matrix = glm::ortho(-5.0f, 5.0f, -3.75f, 3.75f, -1.0f, 1.0f);
@@ -199,8 +199,8 @@ void initialise()
     g_broom1_texutre_id = load_texture(BROOM_SPRITE_FILEPATH);
     g_line_texture_id = load_texture(LINE_SPRITE_FILEPATH);
     g_fire_texture_id = load_texture(FIRE_SPRITE_FILEPATH);
-	player1_win_texture_id = load_texture(PLAYER1_WIN_FILEPATH);
-	player2_win_texture_id = load_texture(PLAYER2_WIN_FILEPATH);
+    player1_win_texture_id = load_texture(PLAYER1_WIN_FILEPATH);
+    player2_win_texture_id = load_texture(PLAYER2_WIN_FILEPATH);
 
     // enable blending
     glEnable(GL_BLEND);
@@ -208,14 +208,14 @@ void initialise()
 }
 
 // Check if ball hits the broomsticks
-bool collision(glm::vec3& position_1, glm::vec3 &position_2, const glm::vec3 &init_pos) {
+bool collision(glm::vec3& position_1, glm::vec3& position_2, const glm::vec3& init_pos) {
     float x_distance = fabs(position_1.x - init_pos.x) - ((INIT_SCALE_FIRE.x + INIT_SCALE_BROOM.x) / 2.0f);
 
     float y_distance = fabs(position_1.y - position_2.y) - ((INIT_SCALE_FIRE.y + INIT_SCALE_BROOM.y) / 2.0f);
-    
+
     // had to adjust from 0 to -0.19 because there's invisible padding on the broomsticks
     // that would make the collision happen too early.
-    if (x_distance < -0.19 && y_distance <= -0.19) { 
+    if (x_distance < -0.19 && y_distance <= -0.19) {
         return true;
     }
     else {
@@ -229,11 +229,11 @@ bool is_out_of_bounds(glm::vec3 fire_position) {
     float right_bound = 5.0f;
 
     if (fire_position.x < left_bound) {
-		player1_wins = true;
+        player1_wins = true;
         return true;
-	}
+    }
     else if (fire_position.x > right_bound) {
-		player2_wins = true;
+        player2_wins = true;
         return true;
     }
     return false;
@@ -309,23 +309,23 @@ void fireball_movement() {
     if (g_fire_position.x < -5.0) {
         std::cout << "player 2 wins\n";
         game_end = true;
-		player2_wins = true;
-		player1_wins = false;
-		LOG("Player 2 wins!");
+        player2_wins = true;
+        player1_wins = false;
+        LOG("Player 2 wins!");
     }
     else if (g_fire_position.x > 5.0) {
         std::cout << "player 1 wins\n";
         game_end = true;
-		player1_wins = true;
-		player2_wins = false;
-		LOG("Player 1 wins!");
+        player1_wins = true;
+        player2_wins = false;
+        LOG("Player 1 wins!");
     }
 }
- 
+
 
 void process_input()
 {
-	g_broom1_movement = glm::vec3(0.0f);
+    g_broom1_movement = glm::vec3(0.0f);
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -345,14 +345,14 @@ void process_input()
                 // Quit the game with q
                 g_app_status = TERMINATED;
                 break;
-			case SDLK_SPACE:
-				// Start the game with spacebar
+            case SDLK_SPACE:
+                // Start the game with spacebar
                 // Also serves as a toggle to make game back to two player mode
-				game_end = false;
+                game_end = false;
                 single_player = false;
-				player1_wins = false;
-				player2_wins = false;
-				break;
+                player1_wins = false;
+                player2_wins = false;
+                break;
             default:
                 break;
             }
@@ -398,7 +398,7 @@ void process_input()
 void process_input_2()
 {
     g_broom_movement = glm::vec3(0.0f);
-   
+
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -486,7 +486,7 @@ void broom_move() {
 void update()
 {
     float ticks = (float)SDL_GetTicks() / MILLISECONDS_IN_SECOND;
-    float delta_time = ticks - g_previous_ticks; 
+    float delta_time = ticks - g_previous_ticks;
     g_previous_ticks = ticks;
 
     // Add direction * units per second * elapsed time
@@ -502,35 +502,35 @@ void update()
         g_broom_position = glm::vec3(0.0f, 0.0f, 0.0f);
         g_broom1_position = glm::vec3(0.0f, 0.0f, 0.0f);
     }
-    
+
     //game_end = false;
     g_broom_matrix = glm::mat4(1.0f);
     g_broom_matrix = glm::translate(g_broom_matrix, INIT_POS_BROOM);
     g_broom_matrix = glm::translate(g_broom_matrix, g_broom_position);
 
-	g_broom1_matrix = glm::mat4(1.0f);
-	g_broom1_matrix = glm::translate(g_broom1_matrix, INIT_POS_BROOM1);
-	g_broom1_matrix = glm::translate(g_broom1_matrix, g_broom1_position);
+    g_broom1_matrix = glm::mat4(1.0f);
+    g_broom1_matrix = glm::translate(g_broom1_matrix, INIT_POS_BROOM1);
+    g_broom1_matrix = glm::translate(g_broom1_matrix, g_broom1_position);
 
     g_fire_matrix = glm::mat4(1.0f);
     g_fire_matrix = glm::translate(g_fire_matrix, INIT_POS_FIRE);
     g_fire_matrix = glm::translate(g_fire_matrix, g_fire_position);
 
     g_broom_matrix = glm::scale(g_broom_matrix, INIT_SCALE_BROOM);
-	g_broom1_matrix = glm::scale(g_broom1_matrix, INIT_SCALE_BROOM1);
+    g_broom1_matrix = glm::scale(g_broom1_matrix, INIT_SCALE_BROOM1);
     g_fire_matrix = glm::scale(g_fire_matrix, INIT_SCALE_FIRE);
 
-	g_line_matrix = glm::mat4(1.0f);
-	g_line_matrix = glm::translate(g_line_matrix, INIT_POS_LINE);
-	g_line_matrix = glm::scale(g_line_matrix, INIT_SCALE_LINE);
+    g_line_matrix = glm::mat4(1.0f);
+    g_line_matrix = glm::translate(g_line_matrix, INIT_POS_LINE);
+    g_line_matrix = glm::scale(g_line_matrix, INIT_SCALE_LINE);
 
-	g_player1win_matrix = glm::mat4(1.0f);
-	g_player1win_matrix = glm::translate(g_player1win_matrix, INIT_POS_PLAYER1_WIN);
-	g_player1win_matrix = glm::scale(g_player1win_matrix, INIT_SCALE_PLAYER1_WIN);
+    g_player1win_matrix = glm::mat4(1.0f);
+    g_player1win_matrix = glm::translate(g_player1win_matrix, INIT_POS_PLAYER1_WIN);
+    g_player1win_matrix = glm::scale(g_player1win_matrix, INIT_SCALE_PLAYER1_WIN);
 
-	g_player2win_matrix = glm::mat4(1.0f);
-	g_player2win_matrix = glm::translate(g_player2win_matrix, INIT_POS_PLAYER2_WIN);
-	g_player2win_matrix = glm::scale(g_player2win_matrix, INIT_SCALE_PLAYER2_WIN);
+    g_player2win_matrix = glm::mat4(1.0f);
+    g_player2win_matrix = glm::translate(g_player2win_matrix, INIT_POS_PLAYER2_WIN);
+    g_player2win_matrix = glm::scale(g_player2win_matrix, INIT_SCALE_PLAYER2_WIN);
     //ROT_ANGLE += ROT_FIRE_SPEED * delta_time;
 
 }
@@ -540,7 +540,7 @@ void draw_object(glm::mat4& object_model_matrix, GLuint& object_texture_id)
 {
     g_shader_program.set_model_matrix(object_model_matrix);
     glBindTexture(GL_TEXTURE_2D, object_texture_id);
-    glDrawArrays(GL_TRIANGLES, 0, 6); 
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void render() {
@@ -567,13 +567,13 @@ void render() {
     // Bind texture
     draw_object(g_line_matrix, g_line_texture_id);
     draw_object(g_broom_matrix, g_broom_texture_id);
-	draw_object(g_broom1_matrix, g_broom_texture_id);
+    draw_object(g_broom1_matrix, g_broom_texture_id);
     draw_object(g_fire_matrix, g_fire_texture_id);
     if (player1_wins == true) {
-		draw_object(g_player1win_matrix, player1_win_texture_id);
+        draw_object(g_player1win_matrix, player1_win_texture_id);
     }
-    else if (player2_wins == true){
-		draw_object(g_player2win_matrix, player2_win_texture_id);
+    else if (player2_wins == true) {
+        draw_object(g_player2win_matrix, player2_win_texture_id);
     }
 
     // We disable two attribute arrays now
